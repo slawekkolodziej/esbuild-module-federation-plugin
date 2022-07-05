@@ -9,7 +9,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Vitest Coverage Report
-        uses: davelosert/vitest-coverage-report-action@v1.0.0
+      - uses: actions/checkout@v2
+      - name: Restore Yarn Cache
+        uses: actions/cache@v3.0.4
+        with:
+          path: .yarn/cache
+          key: yarn.lock
+      - name: Install node modules
+        run: yarn install
+      - name: Test
+        run: yarn vitest
