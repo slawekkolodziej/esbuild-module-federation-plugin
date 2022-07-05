@@ -101,7 +101,7 @@ function alterGlobalRequire(requireMockCode, requireNamedExport) {
 }
 
 function retrieveGlobalRequireChunk(remoteEntryCode) {
-  const ast = astToCode(remoteEntryCode);
+  const ast = codeToAst(remoteEntryCode);
 
   const iifeArguments = ast.program.body.find((node) =>
     t.isExpressionStatement(node)
