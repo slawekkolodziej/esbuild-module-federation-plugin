@@ -10,7 +10,7 @@ const FEDERATED_MODULE_RE = new RegExp(FEDERATED_MODULE_RE_STR);
 const REMOTE_MODULE_PREFIX = `@runtime/federation/${MODULE_CACHE_TYPES.remote}/`;
 const SHARED_MODULE_PREFIX = `@runtime/federation/${MODULE_CACHE_TYPES.shared}/`;
 
-module.exports = {
+export {
   FEDERATED_MODULE_RE_STR,
   FEDERATED_MODULE_RE,
   MODULE_CACHE_TYPES,

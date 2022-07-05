@@ -1,8 +1,10 @@
-const { Visitor } = require("@swc/core/Visitor");
-const { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } = require("../const");
-const st = require("../utils/swcUtils");
+import { Visitor } from "@swc/core/Visitor";
+import { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } from "../const";
+import * as st from "../utils/swcUtils";
 
 class TransformFederatedImports extends Visitor {
+  hasFederatedImports: boolean;
+
   constructor() {
     super();
     this.hasFederatedImports = false;
@@ -134,7 +136,7 @@ function createSharedScopeImport() {
   );
 }
 
-module.exports = {
+export {
   transformFederatedImports,
   TransformFederatedImports,
 };

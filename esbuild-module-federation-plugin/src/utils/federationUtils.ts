@@ -74,7 +74,7 @@ function normalizeRemotes(remotes = {}) {
   }, {});
 }
 
-module.exports = {
+export {
   normalizeModuleName,
   normalizeRemotes,
   normalizeShared,

@@ -3,6 +3,8 @@ import vm from "vm";
 import { promisify } from "util";
 import rimraf from "rimraf";
 import esbuild from "esbuild";
+import babelParser from "@babel/parser";
+import generate from "@babel/generator";
 
 export const emptyDir = promisify(rimraf);
 

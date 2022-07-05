@@ -1,7 +1,6 @@
-const traverse = require("@babel/traverse").default;
-const t = require("@babel/types");
-const { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } = require("../const");
-const st = require("../utils/swcUtils");
+import traverse from "@babel/traverse";
+import t from "@babel/types";
+import { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } from "../const";
 
 const TransformFederatedEsmImports = () => {
   const sideEffects = {
@@ -102,7 +101,7 @@ function createDeclaratorForNamedImports(
   }
 
   return t.variableDeclarator(
-    st.objectPattern(
+    t.objectPattern(
       namedImports.map(({ imported, local }) =>
         t.objectProperty(
           t.identifier(imported),
@@ -148,7 +147,7 @@ function replaceNode(node, newNode) {
     });
 }
 
-module.exports = {
+export {
   createSharedScopeImport,
   transformFederatedEsmImports,
   TransformFederatedEsmImports,

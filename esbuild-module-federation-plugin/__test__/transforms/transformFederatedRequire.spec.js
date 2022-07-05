@@ -1,9 +1,8 @@
 import path from "path";
 import { readFileSync } from "fs";
-import babelParser from "@babel/parser";
-import generate from "@babel/generator";
 import { transformFederatedRequire } from "../../src/transforms/transformFederatedRequire";
 import { buildFixture } from "../../src/utils/testUtils";
+import { codeToAst, astToCode } from "../../src/utils/astUtils";
 
 const esbuildOptions = {
   entryPoints: {
@@ -19,14 +18,9 @@ const esbuildOptions = {
 };
 
 function transformCode(code) {
-  const ast = babelParser.parse(code, {
-    sourceType: "module",
-  });
-
+  const ast = codeToAst(code);
   const transform = transformFederatedRequire(ast);
-  const newCode = generate(ast, {
-    sourceType: "module",
-  });
+  const newCode = astToCode(ast);
 
   return {
     transform,
@@ -41,5 +35,7 @@ describe("transformFederatedRequire", () => {
     const { transform, code } = transformCode(
       readFileSync(path.join(out, "app1.js"), "utf-8")
     );
+
+    console.log(code, transform);
   });
 });

@@ -18,7 +18,7 @@ import {
   SHARED_SCOPE_MODULE_NAME,
 } from "./const";
 
-function esbuildModuleFederationPlugin(paramsOptions = {}) {
+export function esbuildModuleFederationPlugin(paramsOptions = {}) {
   const options = {
     ...paramsOptions,
   };
@@ -169,4 +169,4 @@ function esbuildModuleFederationPlugin(paramsOptions = {}) {
   };
 }
 
-module.exports.esbuildModuleFederationPlugin = esbuildModuleFederationPlugin;
+export default esbuildModuleFederationPlugin;

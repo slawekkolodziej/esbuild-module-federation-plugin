@@ -1,4 +1,4 @@
-const { FEDERATED_MODULE_RE } = require("../const");
+import { FEDERATED_MODULE_RE } from "../const";
 
 const sharingMainTemplate = (options, shared, remotes) => {
   const shareScopesMeta = `{
@@ -214,6 +214,4 @@ function remotesFactory(options, remotes) {
   `;
 }
 
-module.exports = {
-  sharingMainTemplate,
-};
+export { sharingMainTemplate };

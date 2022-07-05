@@ -1,7 +1,6 @@
-import babelParser from "@babel/parser";
-import generate from "@babel/generator";
 // import swc from '@swc/core';
 import { trimIndent } from "../../src/utils/testUtils";
+import { astToCode, codeToAst } from "../../src/utils/astUtils";
 import { transformFederatedEsmImports } from "../../src/transforms/transformFederatedEsmImports";
 
 // function transformCode(code) {
@@ -17,16 +16,11 @@ import { transformFederatedEsmImports } from "../../src/transforms/transformFede
 // }
 
 function transformCode(code) {
-  const ast = babelParser.parse(code, {
-    sourceType: "module",
-    plugins: ["jsx"],
-  });
+  const ast = codeToAst(code);
 
   transformFederatedEsmImports(ast);
 
-  return generate(ast, {
-    sourceType: "module",
-  });
+  return astToCode(ast);
 }
 
 describe("transformFederatedEsmImports", () => {

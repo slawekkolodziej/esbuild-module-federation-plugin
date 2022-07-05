@@ -61,7 +61,7 @@ function locateRequireChunk(ast) {
   ];
 }
 
-module.exports = {
+export {
   locateRequireChunk,
   transformFederatedRequire,
 };

@@ -1,20 +1,15 @@
+import { astToCode, codeToAst } from "./utils/astUtils";
 import babelParser from "@babel/parser";
-import generate from "@babel/generator";
 import t from "@babel/types";
-
 import { FEDERATED_MODULE_RE_STR, SHARED_SCOPE_MODULE_NAME } from "./const";
 import { transformFederatedEsmImports } from "./transforms/transformFederatedEsmImports";
 
 function postProcessFile(code) {
-  const ast = babelParser.parse(code, {
-    sourceType: "module",
-  });
+  const ast = codeToAst(code);
 
   transformFederatedEsmImports(ast);
 
-  const result = generate(ast, {
-    sourceType: "module",
-  });
+  const result = astToCode(ast);
 
   return result.code;
 }
@@ -102,15 +97,11 @@ function alterGlobalRequire(requireMockCode, requireNamedExport) {
 
   ast.program.body.unshift(createSharedScopeImport());
 
-  return generate(ast, {
-    sourceType: "module",
-  });
+  return astToCode(ast);
 }
 
 function retrieveGlobalRequireChunk(remoteEntryCode) {
-  const ast = babelParser.parse(remoteEntryCode, {
-    sourceType: "module",
-  });
+  const ast = astToCode(remoteEntryCode);
 
   const iifeArguments = ast.program.body.find((node) =>
     t.isExpressionStatement(node)
@@ -146,13 +137,11 @@ function retrieveGlobalRequireChunk(remoteEntryCode) {
   return {
     requireMockChunk,
     requireNamedExport,
-    remoteEntryCode: generate(ast, {
-      sourceType: "module",
-    }),
+    remoteEntryCode: astToCode(ast),
   };
 }
 
-module.exports = {
+export {
   retrieveGlobalRequireChunk,
   alterGlobalRequire,
   postProcessFile,

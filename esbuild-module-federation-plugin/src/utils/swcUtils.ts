@@ -1,4 +1,4 @@
-const t = require("@babel/types");
+import t from "@babel/types";
 
 function createSpan() {
   return {
@@ -70,7 +70,7 @@ const keyValuePatternProperty = (key, value) => ({
   span: createSpan(),
 });
 
-module.exports = {
+export {
   arrowFunctionExpression,
   blockStatement,
   callExpression,

@@ -50,6 +50,4 @@ function remoteEntryTemplate(options) {
   `;
 }
 
-module.exports = {
-  remoteEntryTemplate,
-};
+export { remoteEntryTemplate };
