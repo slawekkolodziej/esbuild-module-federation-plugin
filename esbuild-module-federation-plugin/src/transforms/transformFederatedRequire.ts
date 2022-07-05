@@ -1,31 +1,53 @@
-import { dirname, join } from 'path';
+import { dirname, join } from "path";
 import { readFile, writeFile } from "fs/promises";
-import { FEDERATED_MODULE_RE_STR } from '../const'
+import { FEDERATED_MODULE_RE_STR } from "../const";
 import t from "@babel/types";
-import { astToCode, codeToAst } from '../utils/astUtils';
-import { createSharedScopeImport } from './transformFederatedEsmImports';
+import { astToCode, codeToAst } from "../utils/astUtils";
+import { createSharedScopeImport } from "./transformFederatedEsmImports";
 
-async function transformFederatedRequire(remoteEntryPath) {
+type TransformFederatedRequireRetVal = {
+  requireMockCode: string;
+  requireMockChunk: string;
+  requireNamedExport: string;
+};
+
+async function transformFederatedRequire(
+  remoteEntryPath
+): Promise<TransformFederatedRequireRetVal> {
   const buildRoot = dirname(remoteEntryPath);
   const remoteEntryCode = await readFile(remoteEntryPath, "utf-8");
-  const [ast, requireMockChunkDetails] = locateRequireChunk(codeToAst(remoteEntryCode));
+  const [ast, requireMockChunkDetails] = locateRequireChunk(
+    codeToAst(remoteEntryCode)
+  );
 
-  const requireChunkPath = join(buildRoot, requireMockChunkDetails.requireMockChunk);
+  const requireChunkPath = join(
+    buildRoot,
+    requireMockChunkDetails.requireMockChunk
+  );
   const [requireMockCode] = await Promise.all([
     readFile(requireChunkPath, "utf-8"),
     writeFile(remoteEntryPath, astToCode(ast)),
   ]);
-     
-  const finalAst = alterGlobalRequire(codeToAst(requireMockCode), requireMockChunkDetails.requireNamedExport)
-  
-  await writeFile(requireChunkPath, astToCode(finalAst));
+
+  const finalAst = alterGlobalRequire(
+    codeToAst(requireMockCode),
+    requireMockChunkDetails.requireNamedExport
+  );
+  const updatedRequireMockCode = astToCode(finalAst);
+
+  await writeFile(requireChunkPath, updatedRequireMockCode);
+
+  return {
+    requireMockCode: updatedRequireMockCode,
+    ...requireMockChunkDetails,
+  };
 }
 
 type LocateRequireChunkRetVal = [
-  ast: any,
+  ast: unknown,
   requireMockChunkDetails: {
-    requireMockChunk: string,
-    requireNamedExport: string,
+    requireMockChunk: string;
+    requireNamedExport: string;
   }
 ];
 
@@ -150,7 +172,4 @@ function alterGlobalRequire(ast, namedExport) {
   return ast;
 }
 
-export {
-  locateRequireChunk,
-  transformFederatedRequire,
-};
+export { locateRequireChunk, transformFederatedRequire };

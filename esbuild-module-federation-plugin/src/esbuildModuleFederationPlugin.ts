@@ -47,7 +47,7 @@ export function esbuildModuleFederationPlugin(paramsOptions = {}) {
       });
 
       // Generate remote-entry.js
-      build.onLoad({ namespace: "federation/entry", filter: /.*/ }, (args) => {
+      build.onLoad({ namespace: "federation/entry", filter: /.*/ }, () => {
         return {
           resolveDir: ".",
           contents: remoteEntryTemplate(options),
@@ -59,7 +59,7 @@ export function esbuildModuleFederationPlugin(paramsOptions = {}) {
         {
           filter: /@runtime\/federation\/sharing/,
         },
-        (args) => {
+        () => {
           return {
             path: "@runtime/federation/sharing",
             namespace: "federation/sharing",
@@ -79,8 +79,8 @@ export function esbuildModuleFederationPlugin(paramsOptions = {}) {
       // Resolve federated imports
       build.onResolve({ namespace: "file", filter: /.*/ }, (args) => {
         const [moduleName] = normalizeModuleName(args.path);
-        const isSharedPackage = shared.hasOwnProperty(moduleName);
-        const isRemotePackage = remotes.hasOwnProperty(moduleName);
+        const isSharedPackage = Object.hasOwn(shared, moduleName);
+        const isRemotePackage = Object.hasOwn(remotes, moduleName);
 
         if (isSharedPackage || isRemotePackage) {
           filesWithFederatedImports.add(args.importer);
@@ -133,7 +133,7 @@ export function esbuildModuleFederationPlugin(paramsOptions = {}) {
             .then((code) => retrieveGlobalRequireChunk(code))
             .then(({ remoteEntryCode, requireMockChunk, requireNamedExport }) =>
               Promise.all([
-                writeFile(remoteEntryPath, remoteEntryCode.code),
+                writeFile(remoteEntryPath, remoteEntryCode),
                 readFile(path.join(outDir, requireMockChunk), "utf-8"),
                 requireMockChunk,
                 requireNamedExport,
@@ -147,7 +147,7 @@ export function esbuildModuleFederationPlugin(paramsOptions = {}) {
                 ])
             )
             .then(([requireMockChunk, code]) =>
-              writeFile(path.join(outDir, requireMockChunk), code.code)
+              writeFile(path.join(outDir, requireMockChunk), code)
             ),
 
           ...chunksWithFederatedImports.map(async (file) => {

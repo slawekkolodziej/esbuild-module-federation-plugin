@@ -1,5 +1,5 @@
 import babelParser from "@babel/parser";
-import generate, { GeneratorResult } from "@babel/generator";
+import generate from "@babel/generator";
 
 export function codeToAst(code: string) {
   return babelParser.parse(code, {
@@ -8,6 +8,6 @@ export function codeToAst(code: string) {
   });
 }
 
-export function astToCode(ast): GeneratorResult {
+export function astToCode(ast): string {
   return generate(ast).code;
 }

@@ -1,12 +1,17 @@
 import path from "path";
 import vm from "vm";
-import { promisify } from "util";
 import rimraf from "rimraf";
 import esbuild from "esbuild";
-import babelParser from "@babel/parser";
-import generate from "@babel/generator";
 
-export const emptyDir = promisify(rimraf);
+export const emptyDir = (path) =>
+  new Promise((resolve, reject) =>
+    rimraf(path, (err) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(true);
+    })
+  );
 
 function createSyntheticModule(moduleMock, context) {
   const exportNames = Object.keys(moduleMock);
@@ -70,7 +75,7 @@ export async function mockModule(code, modules) {
 
 const WHITE_SPACE_RE = /^(\s+)/;
 
-export function trimIndent(str = '') {
+export function trimIndent(str = "") {
   const lines = str.trim().split("\n");
 
   return lines.map((line) => line.replace(WHITE_SPACE_RE, "")).join("\n");

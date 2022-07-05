@@ -1,4 +1,5 @@
 function getVersion(shared) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require(require.resolve(`${shared}/package.json`)).version;
 }
 
@@ -53,10 +54,10 @@ function normalizeRemotes(remotes = {}) {
   const remoteAddressWithGlobalRe = /^(?:([a-z-_][a-z0-9-_]+)@)?(.+)$/i;
 
   return Object.entries(remotes).reduce((acc, [remote, remoteConfig]) => {
-    let config = {};
+    const config = {};
 
     if (typeof remoteConfig === "string") {
-      const [_, global, src] = remoteConfig.match(remoteAddressWithGlobalRe);
+      const [, global, src] = remoteConfig.match(remoteAddressWithGlobalRe);
 
       config.type = "var";
       config.global = global;
@@ -74,9 +75,4 @@ function normalizeRemotes(remotes = {}) {
   }, {});
 }
 
-export {
-  normalizeModuleName,
-  normalizeRemotes,
-  normalizeShared,
-  getVersion,
-};
+export { normalizeModuleName, normalizeRemotes, normalizeShared, getVersion };

@@ -136,7 +136,4 @@ function createSharedScopeImport() {
   );
 }
 
-export {
-  transformFederatedImports,
-  TransformFederatedImports,
-};
+export { transformFederatedImports, TransformFederatedImports };

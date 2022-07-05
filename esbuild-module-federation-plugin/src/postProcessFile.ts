@@ -9,9 +9,7 @@ function postProcessFile(code) {
 
   transformFederatedEsmImports(ast);
 
-  const result = astToCode(ast);
-
-  return result.code;
+  return astToCode(ast);
 }
 
 function createSharedScopeImport() {
@@ -141,8 +139,4 @@ function retrieveGlobalRequireChunk(remoteEntryCode) {
   };
 }
 
-export {
-  retrieveGlobalRequireChunk,
-  alterGlobalRequire,
-  postProcessFile,
-};
+export { retrieveGlobalRequireChunk, alterGlobalRequire, postProcessFile };
