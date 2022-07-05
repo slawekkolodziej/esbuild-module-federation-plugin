@@ -1,5 +1,5 @@
 import { remoteEntryTemplate } from "../../src/templates/remoteEntry";
-import { mockModule } from "../../src/testUtils";
+import { mockModule } from "../../src/utils/testUtils";
 
 let defaultShareScopes;
 let defaultModules;

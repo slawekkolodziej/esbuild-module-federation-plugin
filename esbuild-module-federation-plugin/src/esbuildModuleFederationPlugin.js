@@ -9,7 +9,7 @@ import {
   normalizeModuleName,
   normalizeShared,
   normalizeRemotes,
-} from "./utils";
+} from "./utils/federationUtils";
 import { sharingMainTemplate } from "./templates/sharing";
 import { remoteEntryTemplate } from "./templates/remoteEntry";
 import {

@@ -1,6 +1,6 @@
 const { Visitor } = require("@swc/core/Visitor");
 const { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } = require("../const");
-const st = require("../swcUtils");
+const st = require("../utils/swcUtils");
 
 class TransformFederatedImports extends Visitor {
   constructor() {

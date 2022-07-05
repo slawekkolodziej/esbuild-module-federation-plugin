@@ -1,7 +1,7 @@
 import babelParser from "@babel/parser";
 import generate from "@babel/generator";
 // import swc from '@swc/core';
-import { trimIndent } from "../../src/testUtils";
+import { trimIndent } from "../../src/utils/testUtils";
 import { transformFederatedEsmImports } from "../../src/transforms/transformFederatedEsmImports";
 
 // function transformCode(code) {
