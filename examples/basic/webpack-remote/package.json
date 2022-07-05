@@ -4,7 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "postinstall": "webpack --mode production",
     "build": "webpack --mode production",
     "start": "node ./server.js"
   },
