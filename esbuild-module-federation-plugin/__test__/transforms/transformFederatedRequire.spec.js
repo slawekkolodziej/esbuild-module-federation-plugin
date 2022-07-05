@@ -16,9 +16,28 @@ const esbuildOptions = {
 };
 
 describe("transformFederatedRequire", () => {
-  it("does the thing", async () => {
+  it("properly overrides __require function", async () => {
     const out = await buildFixture("transformFederatedRequire", esbuildOptions);
+    const { remoteEntryCode, requireMockCode } =
+      await transformFederatedRequire(path.join(out, "app1.js"));
 
-    await transformFederatedRequire(path.join(out, "app1.js"));
+    expect(remoteEntryCode).toMatchSnapshot();
+    expect(requireMockCode).toMatchSnapshot();
+  });
+
+  it("properly overrides __require function in minified code", async () => {
+    const out = await buildFixture(
+      "transformFederatedRequire",
+      {
+        ...esbuildOptions,
+        minify: true,
+      },
+      "out-min"
+    );
+    const { remoteEntryCode, requireMockCode } =
+      await transformFederatedRequire(path.join(out, "app1.js"));
+
+    expect(remoteEntryCode).toMatchSnapshot();
+    expect(requireMockCode).toMatchSnapshot();
   });
 });

@@ -6,6 +6,7 @@ import { astToCode, codeToAst } from "../utils/astUtils";
 import { createSharedScopeImport } from "./transformFederatedEsmImports";
 
 type TransformFederatedRequireRetVal = {
+  remoteEntryCode: string;
   requireMockCode: string;
   requireMockChunk: string;
   requireNamedExport: string;
@@ -24,9 +25,10 @@ async function transformFederatedRequire(
     buildRoot,
     requireMockChunkDetails.requireMockChunk
   );
+  const updatedRemoteEntryCode = astToCode(ast);
   const [requireMockCode] = await Promise.all([
     readFile(requireChunkPath, "utf-8"),
-    writeFile(remoteEntryPath, astToCode(ast)),
+    writeFile(remoteEntryPath, updatedRemoteEntryCode),
   ]);
 
   const finalAst = alterGlobalRequire(
@@ -38,6 +40,7 @@ async function transformFederatedRequire(
   await writeFile(requireChunkPath, updatedRequireMockCode);
 
   return {
+    remoteEntryCode: updatedRemoteEntryCode,
     requireMockCode: updatedRequireMockCode,
     ...requireMockChunkDetails,
   };

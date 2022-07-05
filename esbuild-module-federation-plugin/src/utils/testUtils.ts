@@ -81,9 +81,9 @@ export function trimIndent(str = "") {
   return lines.map((line) => line.replace(WHITE_SPACE_RE, "")).join("\n");
 }
 
-export async function buildFixture(fixtureName, options) {
+export async function buildFixture(fixtureName, options, out = "out") {
   const src = path.resolve(__dirname, "../../fixtures", fixtureName, "src");
-  const outdir = path.resolve(src, "../out");
+  const outdir = path.join(path.resolve(src, ".."), out);
 
   await emptyDir(outdir);
 

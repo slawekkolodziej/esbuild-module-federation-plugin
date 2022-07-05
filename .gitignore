@@ -1,13 +1,21 @@
+# IDEs
 .vscode
 .idea
+
+# node_modules and yarn
+node_modules
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Build files
 coverage
 dist
-out
 meta.json
-node_modules
+
+# Fixture builds
+esbuild-module-federation-plugin/fixtures/*/*
+!esbuild-module-federation-plugin/fixtures/*/src

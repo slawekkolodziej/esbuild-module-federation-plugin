@@ -1,0 +1,51 @@
+// Vitest Snapshot v1
+
+exports[`transformFederatedRequire > properly overrides __require function 1`] = `
+"// app1.jsx
+(function (self) {})(globalThis);"
+`;
+
+exports[`transformFederatedRequire > properly overrides __require function 2`] = `
+"import { getModule, getModuleAsync } from \\"../federation-shared.js\\";
+
+var __require = (req => mod => {
+  if (mod.match(/@runtime\\\\/federation\\\\/(remote|shared)\\\\/(.+)/)) {
+    return getModule(mod);
+  }
+
+  return req(mod);
+})(x => {
+  if (typeof require !== \\"undefined\\") return require(x);
+  throw new Error('Dynamic require of \\"' + x + '\\" is not supported');
+}); // app2.jsx
+
+
+(function (self) {})(globalThis, __require);
+
+function App() {}
+
+export { __require, App };"
+`;
+
+exports[`transformFederatedRequire > properly overrides __require function in minified code 1`] = `"(function (i) {})(globalThis);"`;
+
+exports[`transformFederatedRequire > properly overrides __require function in minified code 2`] = `
+"import { getModule, getModuleAsync } from \\"../federation-shared.js\\";
+
+var f = (req => mod => {
+  if (mod.match(/@runtime\\\\/federation\\\\/(remote|shared)\\\\/(.+)/)) {
+    return getModule(mod);
+  }
+
+  return req(mod);
+})(e => {
+  if (typeof require != \\"undefined\\") return require(e);
+  throw new Error('Dynamic require of \\"' + e + '\\" is not supported');
+});
+
+(function (e) {})(globalThis, f);
+
+function i() {}
+
+export { f as a, i as b };"
+`;
