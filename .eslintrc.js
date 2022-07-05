@@ -6,5 +6,9 @@ module.exports = {
   plugins: ["prettier"],
   rules: {
     "prettier/prettier": "error",
+    "padding-line-between-statements": [
+      "error",
+      { blankLine: "never", prev: "import", next: "import" },
+    ],
   },
 };
