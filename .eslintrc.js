@@ -8,6 +8,7 @@ module.exports = {
     "prettier/prettier": "error",
     "padding-line-between-statements": [
       "error",
+      { blankLine: "always", prev: "import", next: "*" },
       { blankLine: "never", prev: "import", next: "import" },
     ],
   },
