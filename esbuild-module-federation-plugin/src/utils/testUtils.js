@@ -4,7 +4,7 @@ import { promisify } from "util";
 import rimraf from "rimraf";
 import esbuild from "esbuild";
 
-const emptyDir = promisify(rimraf);
+export const emptyDir = promisify(rimraf);
 
 function createSyntheticModule(moduleMock, context) {
   const exportNames = Object.keys(moduleMock);
