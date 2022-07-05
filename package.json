@@ -6,17 +6,17 @@
   ],
   "scripts": {
     "build.basic": "run-p \"example.basic.* {1}\" -- build",
-    "build": "yarn plugin build",
-    "dev": "yarn plugin dev",
+    "build": "yarn src build",
+    "dev": "yarn src dev",
     "example.basic.esbuild-host": "yarn workspace example-basic-esbuild-host",
     "example.basic.esbuild-remote": "yarn workspace example-basic-esbuild-remote",
     "example.basic.webpack-remote": "yarn workspace example-basic-webpack-remote",
     "lint.examples": "yarn eslint --fix ./examples",
     "lint": "yarn eslint --fix ./esbuild-module-federation-plugin",
-    "plugin": "yarn workspace esbuild-module-federation-plugin",
+    "src": "yarn workspace esbuild-module-federation-plugin",
     "start.basic": "run-p \"example.basic.* {1}\" -- start",
-    "test": "yarn plugin test",
-    "watch": "yarn plugin watch"
+    "test": "yarn src test",
+    "watch": "yarn src watch"
   },
   "devDependencies": {
     "eslint": "~8.19.0",
