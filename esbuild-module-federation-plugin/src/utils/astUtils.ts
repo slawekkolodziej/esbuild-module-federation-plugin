@@ -9,5 +9,5 @@ export function codeToAst(code: string) {
 }
 
 export function astToCode(ast): GeneratorResult {
-  return generate(ast);
+  return generate(ast).code;
 }

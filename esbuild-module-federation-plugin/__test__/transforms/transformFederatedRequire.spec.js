@@ -32,10 +32,6 @@ describe("transformFederatedRequire", () => {
   it("does the thing", async () => {
     const out = await buildFixture("transformFederatedRequire", esbuildOptions);
 
-    const { transform, code } = transformCode(
-      readFileSync(path.join(out, "app1.js"), "utf-8")
-    );
-
-    console.log(code, transform);
+    transformFederatedRequire(path.join(out, "app1.js"));
   });
 });

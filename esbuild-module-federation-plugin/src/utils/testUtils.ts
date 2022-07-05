@@ -70,7 +70,7 @@ export async function mockModule(code, modules) {
 
 const WHITE_SPACE_RE = /^(\s+)/;
 
-export function trimIndent(str) {
+export function trimIndent(str = '') {
   const lines = str.trim().split("\n");
 
   return lines.map((line) => line.replace(WHITE_SPACE_RE, "")).join("\n");

@@ -32,7 +32,7 @@ describe("transformFederatedEsmImports", () => {
 
     const result = transformCode(code);
 
-    expect(trimIndent(result.code)).toEqual(code);
+    expect(trimIndent(result)).toEqual(code);
   });
 
   it("does not modify non-federated dynamic imports", () => {
@@ -44,7 +44,7 @@ describe("transformFederatedEsmImports", () => {
 
     const result = transformCode(code);
 
-    expect(trimIndent(result.code)).toEqual(code);
+    expect(trimIndent(result)).toEqual(code);
   });
 
   it("converts import declarations", () => {
@@ -55,7 +55,7 @@ describe("transformFederatedEsmImports", () => {
 
     const result = transformCode(code);
 
-    expect(trimIndent(result.code)).toEqual(
+    expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
         import { getModule, getModuleAsync } from "../federation-shared.js";
         const React = getModule("@runtime/federation/shared/react"),
@@ -80,7 +80,7 @@ describe("transformFederatedEsmImports", () => {
 
     const result = transformCode(code);
 
-    expect(trimIndent(result.code)).toEqual(
+    expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
         import { getModule, getModuleAsync } from "../federation-shared.js";
 
@@ -113,7 +113,7 @@ describe("transformFederatedEsmImports", () => {
 
     const result = transformCode(code);
 
-    expect(trimIndent(result.code)).toEqual(
+    expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
         import { getModule, getModuleAsync } from "../federation-shared.js";
         const React = getModule("@runtime/federation/shared/react"),

@@ -1,15 +1,35 @@
-import babelParser from "@babel/parser";
-import generate from "@babel/generator";
+import { dirname, join } from 'path';
+import { readFile, writeFile } from "fs/promises";
+import { FEDERATED_MODULE_RE_STR } from '../const'
 import t from "@babel/types";
+import { astToCode, codeToAst } from '../utils/astUtils';
+import { createSharedScopeImport } from './transformFederatedEsmImports';
 
-function transformFederatedRequire(ast) {
-  const [astWithoutRequire, { requireMockChunk, requireNamedExport }] =
-    locateRequireChunk(ast);
+async function transformFederatedRequire(remoteEntryPath) {
+  const buildRoot = dirname(remoteEntryPath);
+  const remoteEntryCode = await readFile(remoteEntryPath, "utf-8");
+  const [ast, requireMockChunkDetails] = locateRequireChunk(codeToAst(remoteEntryCode));
 
-  return astWithoutRequire;
+  const requireChunkPath = join(buildRoot, requireMockChunkDetails.requireMockChunk);
+  const [requireMockCode] = await Promise.all([
+    readFile(requireChunkPath, "utf-8"),
+    writeFile(remoteEntryPath, astToCode(ast)),
+  ]);
+     
+  const finalAst = alterGlobalRequire(codeToAst(requireMockCode), requireMockChunkDetails.requireNamedExport)
+  
+  await writeFile(requireChunkPath, astToCode(finalAst));
 }
 
-function locateRequireChunk(ast) {
+type LocateRequireChunkRetVal = [
+  ast: any,
+  requireMockChunkDetails: {
+    requireMockChunk: string,
+    requireNamedExport: string,
+  }
+];
+
+function locateRequireChunk(ast): LocateRequireChunkRetVal {
   // remote-entry.js contains the code similar to this:
   // import { foo as require } from './chunks/chunk-123.js';
   // (function(self) {
@@ -59,6 +79,75 @@ function locateRequireChunk(ast) {
       requireNamedExport,
     },
   ];
+}
+
+function alterGlobalRequire(ast, namedExport) {
+  const namedExportDecl = ast.program.body.find((node) =>
+    t.isExportNamedDeclaration(node)
+  );
+
+  if (!namedExportDecl) {
+    throw new Error("Could not find named exports node.");
+  }
+
+  const requireMockExportSpecifier = namedExportDecl.specifiers.find(
+    (specifier) => specifier.exported.name === namedExport
+  );
+
+  if (!requireMockExportSpecifier) {
+    throw new Error("Could not find named export for require mock.");
+  }
+
+  const localName = requireMockExportSpecifier.local.name;
+  const isRequireDecl = (node) => node.id.name === localName;
+  const requireMockDeclGroup = ast.program.body.find(
+    (node) =>
+      t.isVariableDeclaration(node) && node.declarations.some(isRequireDecl)
+  );
+  const requireMockDecl = requireMockDeclGroup.declarations.find(isRequireDecl);
+
+  if (!requireMockDecl) {
+    throw new Error("Could not find require mock declaration.");
+  }
+
+  // The code below should generate the following syntax:
+  // (req => mod => {
+  //   if (mod.matches(FEDERATED_MODULE_RE)) {
+  //       return getModule(mod);
+  //   }
+  //   return req(mod);
+  // })(/* original syntax for __require would go here */)
+  requireMockDecl.init = t.callExpression(
+    t.arrowFunctionExpression(
+      [t.identifier("req")],
+      t.arrowFunctionExpression(
+        [t.identifier("mod")],
+        t.blockStatement([
+          t.ifStatement(
+            t.callExpression(
+              t.memberExpression(t.identifier("mod"), t.identifier("match")),
+              [t.regExpLiteral(FEDERATED_MODULE_RE_STR.replace(/\//g, "\\/"))]
+            ),
+            t.blockStatement([
+              t.returnStatement(
+                t.callExpression(t.identifier("getModule"), [
+                  t.identifier("mod"),
+                ])
+              ),
+            ])
+          ),
+          t.returnStatement(
+            t.callExpression(t.identifier("req"), [t.identifier("mod")])
+          ),
+        ])
+      )
+    ),
+    [requireMockDecl.init]
+  );
+
+  ast.program.body.unshift(createSharedScopeImport());
+
+  return ast;
 }
 
 export {
