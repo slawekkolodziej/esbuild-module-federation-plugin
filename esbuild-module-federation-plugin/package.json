@@ -1,0 +1,26 @@
+{
+  "name": "esbuild-module-federation-plugin",
+  "version": "0.0.1",
+  "main": "dist/esbuildModuleFederationPlugin.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "watch": "node scripts/watch.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules vitest",
+    "dev": "run-p watch test",
+    "coverage": "NODE_OPTIONS=--experimental-vm-modules vitest run --coverage"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.18.5",
+    "@babel/preset-react": "^7.17.12",
+    "@babel/preset-typescript": "^7.17.12",
+    "@babel/traverse": "^7.18.5",
+    "@babel/types": "^7.18.4",
+    "@swc/core": "^1.2.208",
+    "c8": "^7.11.3",
+    "esbuild": "0.12.9",
+    "rimraf": "^3.0.2",
+    "run-p": "^0.0.0",
+    "vitest": "^0.17.0"
+  }
+}

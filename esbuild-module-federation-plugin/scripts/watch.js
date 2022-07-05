@@ -1,0 +1,3 @@
+require("./build")({
+  watch: true,
+});

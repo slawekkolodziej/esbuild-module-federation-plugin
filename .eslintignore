@@ -1,0 +1,5 @@
+dist
+coverage
+node_modules
+esbuild-module-federation-plugin/fixtures/*/out
+examples/*/*/public

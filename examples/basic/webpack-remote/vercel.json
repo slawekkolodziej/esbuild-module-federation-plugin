@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "functions": {
+    "api/vercel.js": {
+      "maxDuration": 10
+    },
+    "api/vercel-prerender.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/prerender",
+      "destination": "/api/vercel-prerender.js"
+    },
+    {
+      "source": "/",
+      "destination": "/api/vercel.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/public/$1"
+    }
+  ]
+}

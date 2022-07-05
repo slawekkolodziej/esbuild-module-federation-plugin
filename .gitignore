@@ -1,0 +1,7 @@
+.vscode
+.idea
+coverage
+dist
+out
+meta.json
+node_modules

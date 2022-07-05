@@ -1,0 +1,33 @@
+{
+  "name": "example-basic-esbuild-remote",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "yarn build",
+    "build": "node ./scripts/build.js",
+    "start-prev": "node ./server.js",
+    "start": "rm -rf public/build && yarn build && http-server public -p 3002 --cors"
+  },
+  "dependencies": {
+    "body-parser": "1.19.0",
+    "cors": "2.8.5",
+    "express": "4.17.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.18.5",
+    "@babel/preset-react": "^7.17.12",
+    "@babel/preset-typescript": "^7.17.12",
+    "@babel/traverse": "^7.18.5",
+    "@babel/types": "^7.18.4",
+    "css-loader": "5.2.6",
+    "esbuild": "0.14.46",
+    "esbuild-css-modules-plugin": "^2.3.2",
+    "esbuild-loader": "2.19.0",
+    "esbuild-module-federation-plugin": "*",
+    "mini-css-extract-plugin": "1.6.0",
+    "serve": "12.0.0"
+  }
+}
