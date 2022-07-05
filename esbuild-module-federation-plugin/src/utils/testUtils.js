@@ -1,4 +1,10 @@
+import path from "path";
 import vm from "vm";
+import { promisify } from "util";
+import rimraf from "rimraf";
+import esbuild from "esbuild";
+
+const emptyDir = promisify(rimraf);
 
 function createSyntheticModule(moduleMock, context) {
   const exportNames = Object.keys(moduleMock);
@@ -66,4 +72,19 @@ export function trimIndent(str) {
   const lines = str.trim().split("\n");
 
   return lines.map((line) => line.replace(WHITE_SPACE_RE, "")).join("\n");
+}
+
+export async function buildFixture(fixtureName, options) {
+  const src = path.resolve(__dirname, "../../fixtures", fixtureName, "src");
+  const outdir = path.resolve(src, "../out");
+
+  await emptyDir(outdir);
+
+  await esbuild.build({
+    ...options,
+    absWorkingDir: src,
+    outdir,
+  });
+
+  return outdir;
 }

@@ -1,37 +1,22 @@
 import path from "path";
-import { promisify } from "util";
 import { readFileSync } from "fs";
-import rimraf from "rimraf";
-import esbuild from "esbuild";
 import babelParser from "@babel/parser";
 import generate from "@babel/generator";
 import { transformFederatedRequire } from "../../src/transforms/transformFederatedRequire";
+import { buildFixture } from "../../src/utils/testUtils";
 
-const emptyDir = promisify(rimraf);
-
-async function buildFixture(fixtureName, options) {
-  const src = path.resolve(__dirname, "../../fixtures", fixtureName, "src");
-  const outdir = path.resolve(src, "../out");
-
-  await emptyDir(outdir);
-
-  await esbuild.build({
-    entryPoints: {
-      app1: path.join(src, "app1.jsx"),
-      app2: path.join(src, "app2.jsx"),
-    },
-    outdir,
-    bundle: true,
-    chunkNames: "chunks/[name]-[hash]",
-    format: "esm",
-    minify: false,
-    splitting: true,
-    write: true,
-    ...options,
-  });
-
-  return outdir;
-}
+const esbuildOptions = {
+  entryPoints: {
+    app1: "app1.jsx",
+    app2: "app2.jsx",
+  },
+  bundle: true,
+  chunkNames: "chunks/[name]-[hash]",
+  format: "esm",
+  minify: false,
+  splitting: true,
+  write: true,
+};
 
 function transformCode(code) {
   const ast = babelParser.parse(code, {
@@ -51,12 +36,10 @@ function transformCode(code) {
 
 describe("transformFederatedRequire", () => {
   it("does the thing", async () => {
-    const out = await buildFixture("transformFederatedRequire");
+    const out = await buildFixture("transformFederatedRequire", esbuildOptions);
 
     const { transform, code } = transformCode(
       readFileSync(path.join(out, "app1.js"), "utf-8")
     );
-
-    console.log(transform, code);
   });
 });
