@@ -1,5 +1,11 @@
 .vscode
 .idea
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 coverage
 dist
 out
