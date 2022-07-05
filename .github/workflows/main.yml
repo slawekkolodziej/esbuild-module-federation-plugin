@@ -18,4 +18,4 @@ jobs:
       - name: Install node modules
         run: yarn install
       - name: Test
-        run: yarn vitest
+        run: yarn test
