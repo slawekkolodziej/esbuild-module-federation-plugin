@@ -4,7 +4,7 @@
 
 - [x] Lazy load remotes
 - [x] Set up proper testing environment
-- [ ] Convert code to TypeScript?
+- [x] Convert code to TypeScript?
 - [ ] Replace Babel with SWC or other, faster tool
       After initial work it seems that SWC Visitor is buggy. It does not visit all CallExpression statements. Possibly related issue: https://github.com/swc-project/swc/issues/1623
 - [ ] Call `initSharing` inside entrypoints
