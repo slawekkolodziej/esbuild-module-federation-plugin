@@ -1,15 +1,12 @@
 import path from "path";
 import { readFile, writeFile } from "fs/promises";
-import {
-  postProcessFile,
-  retrieveGlobalRequireChunk,
-  alterGlobalRequire,
-} from "./postProcessFile";
+import { postProcessFile } from "./postProcessFile";
 import {
   normalizeModuleName,
   normalizeShared,
   normalizeRemotes,
 } from "./utils/federationUtils";
+import { transformFederatedRequire } from "./transforms/transformFederatedRequire";
 import { sharingMainTemplate } from "./templates/sharing";
 import { remoteEntryTemplate } from "./templates/remoteEntry";
 import {
@@ -123,33 +120,7 @@ export function esbuildModuleFederationPlugin(paramsOptions = {}) {
         );
 
         Promise.all([
-          // The code below alters require() calls in a quite convoluted way
-          // 1. It goes to remote-entry.js and gets reference to chunk containing
-          //    esbuild's __require mock
-          // 2. It goes to that chunk and alters local __require implementation so
-          //    so it can try to import federated modules first
-          // It would be nice to refactor this a bit and bring back minification
-          readFile(remoteEntryPath, "utf-8")
-            .then((code) => retrieveGlobalRequireChunk(code))
-            .then(({ remoteEntryCode, requireMockChunk, requireNamedExport }) =>
-              Promise.all([
-                writeFile(remoteEntryPath, remoteEntryCode),
-                readFile(path.join(outDir, requireMockChunk), "utf-8"),
-                requireMockChunk,
-                requireNamedExport,
-              ])
-            )
-            .then(
-              ([_, requireMockCode, requireMockChunk, requireNamedExport]) =>
-                Promise.all([
-                  requireMockChunk,
-                  alterGlobalRequire(requireMockCode, requireNamedExport),
-                ])
-            )
-            .then(([requireMockChunk, code]) =>
-              writeFile(path.join(outDir, requireMockChunk), code)
-            ),
-
+          transformFederatedRequire(remoteEntryPath),
           ...chunksWithFederatedImports.map(async (file) => {
             const code = await readFile(file, "utf-8");
             let transformedCode = postProcessFile(code);
