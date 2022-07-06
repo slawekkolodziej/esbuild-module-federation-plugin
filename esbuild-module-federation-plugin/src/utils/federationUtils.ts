@@ -1,9 +1,11 @@
-function getVersion(shared) {
+import { templateToFunction } from "./templateUtils";
+
+export function getVersion(shared) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   return require(require.resolve(`${shared}/package.json`)).version;
 }
 
-function normalizeShared(shared) {
+export function normalizeShared(shared) {
   shared = shared || [];
 
   if (Array.isArray(shared)) {
@@ -38,19 +40,24 @@ function normalizeShared(shared) {
   }, {});
 }
 
-function normalizeModuleName(moduleName) {
-  if (moduleName[0] === "@") {
-    const [modScope, modName, ...modPath] = moduleName.split("/");
+export const normalizeModuleNameTemplate = /* js */ `
+  function normalizeModuleName(moduleName) {
+    if (moduleName[0] === "@") {
+      const [modScope, modName, ...modPath] = moduleName.split("/");
 
-    return [[modScope, modName].join("/"), `./${modPath.join("/")}`];
+      return [[modScope, modName].join("/"), './' + modPath.join("/")];
+    }
+
+    const [modName, ...modPath] = moduleName.split("/");
+
+    return [modName, './' + modPath.join("/")];
   }
+`;
+export const normalizeModuleName = templateToFunction(
+  normalizeModuleNameTemplate
+);
 
-  const [modName, ...modPath] = moduleName.split("/");
-
-  return [modName, `./${modPath.join("/")}`];
-}
-
-function normalizeRemotes(remotes = {}) {
+export function normalizeRemotes(remotes = {}) {
   const remoteAddressWithGlobalRe = /^(?:([a-z-_][a-z0-9-_]+)@)?(.+)$/i;
 
   return Object.entries(remotes).reduce((acc, [remote, remoteConfig]) => {
@@ -74,5 +81,3 @@ function normalizeRemotes(remotes = {}) {
     };
   }, {});
 }
-
-export { normalizeModuleName, normalizeRemotes, normalizeShared, getVersion };

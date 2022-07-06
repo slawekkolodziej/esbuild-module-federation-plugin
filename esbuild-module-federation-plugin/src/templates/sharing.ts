@@ -1,4 +1,5 @@
 import { FEDERATED_MODULE_RE } from "../const";
+import { normalizeModuleNameTemplate } from "../utils/federationUtils";
 
 const sharingMainTemplate = (options, shared, remotes) => {
   const shareScopesMeta = `{
@@ -105,18 +106,7 @@ const sharingMainTemplate = (options, shared, remotes) => {
       return mod;
     }
 
-    function normalizeModuleName(moduleName) {
-      if (moduleName[0] === '@') {
-        const [modScope, modName, ...modPath] = moduleName.split('/');
-        
-        return [[modScope, modName].join('/'), './' + modPath.join('/')];
-      }
-
-      const [modName, ...modPath] = moduleName.split('/');
-
-      return [modName, './' + modPath.join('/')];
-    }
-
+    ${normalizeModuleNameTemplate}
     ${remotesFactory(options, remotes)}
   `;
 };
