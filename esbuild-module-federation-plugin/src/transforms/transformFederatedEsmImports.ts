@@ -1,6 +1,8 @@
 import traverse from "@babel/traverse";
 import t from "@babel/types";
+import { replaceNode } from "../utils/astUtils";
 import { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } from "../const";
+import { convertImportDeclarations } from "../utils/astUtils";
 
 const TransformFederatedEsmImports = () => {
   const sideEffects = {
@@ -18,35 +20,10 @@ const TransformFederatedEsmImports = () => {
 
       sideEffects.hasFederatedImports = true;
 
-      const { defaultImport, namedImports } = node.specifiers.reduce(
-        (acc, specifier) => {
-          if (t.isImportDefaultSpecifier(specifier)) {
-            acc.defaultImport = specifier.local.name;
-          } else {
-            acc.namedImports.push({
-              imported: specifier.imported.name,
-              local: specifier.local.name,
-            });
-          }
-          return acc;
-        },
-        { defaultImport: null, namedImports: [] }
-      );
-
       const getModuleCall = createGetModuleCall(moduleName);
-      const newNode = t.variableDeclaration(
-        "const",
-        [
-          createDeclaratorForDefaultImport(defaultImport, getModuleCall),
-          createDeclaratorForNamedImports(
-            namedImports,
-            defaultImport,
-            getModuleCall
-          ),
-        ].filter(Boolean)
-      );
+      const newNode = convertImportDeclarations(node, getModuleCall);
 
-      replaceNode(path.node, newNode);
+      replaceNode(node, newNode);
     },
     Import(path) {
       const moduleName = path.parent.arguments[0].value;
@@ -54,7 +31,9 @@ const TransformFederatedEsmImports = () => {
       if (FEDERATED_MODULE_RE.test(moduleName)) {
         sideEffects.hasFederatedImports = true;
 
-        replaceNode(path.parent, createDynamicImport(moduleName));
+        const newNode = createDynamicImport(moduleName);
+
+        replaceNode(path.parent, newNode);
       }
     },
   };
@@ -83,38 +62,6 @@ function createGetModuleCall(moduleName) {
   ]);
 }
 
-function createDeclaratorForDefaultImport(defaultImportName, getModuleCall) {
-  if (!defaultImportName) {
-    return null;
-  }
-
-  return t.variableDeclarator(t.identifier(defaultImportName), getModuleCall);
-}
-
-function createDeclaratorForNamedImports(
-  namedImports,
-  defaultImportName,
-  getModuleCall
-) {
-  if (namedImports.length === 0) {
-    return null;
-  }
-
-  return t.variableDeclarator(
-    t.objectPattern(
-      namedImports.map(({ imported, local }) =>
-        t.objectProperty(
-          t.identifier(imported),
-          t.identifier(local),
-          false,
-          imported === local
-        )
-      )
-    ),
-    defaultImportName ? t.identifier(defaultImportName) : getModuleCall
-  );
-}
-
 function createSharedScopeImport() {
   return t.importDeclaration(
     [
@@ -132,19 +79,6 @@ function createDynamicImport(moduleName) {
   return t.callExpression(t.identifier("getModuleAsync"), [
     t.stringLiteral(moduleName),
   ]);
-}
-
-function replaceNode(node, newNode) {
-  const currentKeys = Object.keys(node);
-  const newKeys = Object.keys(newNode);
-
-  Object.assign(node, newNode);
-
-  currentKeys
-    .filter((key) => !newKeys.includes(key))
-    .forEach((key) => {
-      delete node[key];
-    });
 }
 
 export {
