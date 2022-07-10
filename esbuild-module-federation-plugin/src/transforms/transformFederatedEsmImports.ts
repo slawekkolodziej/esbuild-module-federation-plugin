@@ -4,7 +4,7 @@ import { replaceNode } from "../utils/astUtils";
 import { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } from "../const";
 import { convertImportDeclarations } from "../utils/astUtils";
 
-const TransformFederatedEsmImports = () => {
+export const TransformFederatedEsmImports = () => {
   const sideEffects = {
     hasFederatedImports: false,
   };
@@ -44,7 +44,7 @@ const TransformFederatedEsmImports = () => {
   };
 };
 
-function transformFederatedEsmImports(ast) {
+export function transformFederatedEsmImports(ast) {
   const { visitor, sideEffects } = TransformFederatedEsmImports();
 
   traverse(ast, visitor);
@@ -62,7 +62,7 @@ function createGetModuleCall(moduleName) {
   ]);
 }
 
-function createSharedScopeImport() {
+export function createSharedScopeImport() {
   return t.importDeclaration(
     [
       t.importSpecifier(t.identifier("getModule"), t.identifier("getModule")),
@@ -80,9 +80,3 @@ function createDynamicImport(moduleName) {
     t.stringLiteral(moduleName),
   ]);
 }
-
-export {
-  createSharedScopeImport,
-  transformFederatedEsmImports,
-  TransformFederatedEsmImports,
-};

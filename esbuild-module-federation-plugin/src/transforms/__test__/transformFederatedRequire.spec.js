@@ -1,6 +1,6 @@
 import path from "path";
-import { transformFederatedRequire } from "../../src/transforms/transformFederatedRequire";
-import { buildFixture } from "../../src/utils/testUtils";
+import { transformFederatedRequire } from "../transformFederatedRequire";
+import { buildFixture } from "../../utils/testUtils";
 
 const esbuildOptions = {
   entryPoints: {

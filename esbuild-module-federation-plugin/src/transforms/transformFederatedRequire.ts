@@ -12,7 +12,7 @@ type TransformFederatedRequireRetVal = {
   requireNamedExport: string;
 };
 
-async function transformFederatedRequire(
+export async function transformFederatedRequire(
   remoteEntryPath
 ): Promise<TransformFederatedRequireRetVal> {
   const buildRoot = dirname(remoteEntryPath);
@@ -54,7 +54,7 @@ type LocateRequireChunkRetVal = [
   }
 ];
 
-function locateRequireChunk(ast): LocateRequireChunkRetVal {
+export function locateRequireChunk(ast): LocateRequireChunkRetVal {
   // remote-entry.js contains the code similar to this:
   // import { foo as require } from './chunks/chunk-123.js';
   // (function(self) {
@@ -174,5 +174,3 @@ function alterGlobalRequire(ast, namedExport) {
 
   return ast;
 }
-
-export { locateRequireChunk, transformFederatedRequire };

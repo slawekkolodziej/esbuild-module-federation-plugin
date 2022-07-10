@@ -1,7 +1,7 @@
 // import swc from '@swc/core';
-import { trimIndent } from "../../src/utils/testUtils";
-import { astToCode, codeToAst } from "../../src/utils/astUtils";
-import { transformFederatedEsmImports } from "../../src/transforms/transformFederatedEsmImports";
+import { trimIndent } from "../../utils/testUtils";
+import { astToCode, codeToAst } from "../../utils/astUtils";
+import { transformFederatedEsmImports } from "../../transforms/transformFederatedEsmImports";
 
 // function transformCode(code) {
 //   return swc.transformSync(code, {

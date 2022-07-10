@@ -3,7 +3,7 @@ import {
   normalizeModuleName,
   normalizeRemotes,
   normalizeShared,
-} from "../src/utils/federationUtils";
+} from "../federationUtils";
 
 describe("getVersion", () => {
   it("gives correct version of packages", () => {
