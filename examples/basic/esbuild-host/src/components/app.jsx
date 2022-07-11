@@ -33,18 +33,6 @@ export default function App() {
               <p>Nested component</p>
             </Header>
           </Header>
-
-          {Object.entries(process.env.REMOTE_HOSTS).map(([name, entry]) => {
-            if (typeof entry === 'string') {
-              return (
-                <script key={name} src={`${entry}/build/remote-entry.js`} />
-              )
-            }
-
-            const { url, type } = entry;
-
-            return <script key={name} type={type} src={`${entry.url}/build/remote-entry.js`} />
-          })}
           <script type="module" src={`build/app.js`} />
         </React.Suspense>
       </body>
