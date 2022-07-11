@@ -57,7 +57,7 @@ describe("transformFederatedEsmImports", () => {
 
     expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
-        import { getModule, getModuleAsync } from "../federation-shared.js";
+        import { getModule, getModuleAsync } from "./federation-shared.js";
         const React = getModule("@runtime/federation/shared/react"),
               {
                 useMemo,
@@ -82,7 +82,7 @@ describe("transformFederatedEsmImports", () => {
 
     expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
-        import { getModule, getModuleAsync } from "../federation-shared.js";
+        import { getModule, getModuleAsync } from "./federation-shared.js";
 
         async function getRemoteStuff() {
           const remoteProp = await getModuleAsync("@runtime/federation/remote/someOtherComponent").then(mod => mod.someProp);
@@ -115,7 +115,7 @@ describe("transformFederatedEsmImports", () => {
 
     expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
-        import { getModule, getModuleAsync } from "../federation-shared.js";
+        import { getModule, getModuleAsync } from "./federation-shared.js";
         const React = getModule("@runtime/federation/shared/react"),
               {
                 useState

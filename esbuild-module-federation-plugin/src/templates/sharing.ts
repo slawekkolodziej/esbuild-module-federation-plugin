@@ -1,7 +1,8 @@
 import { FEDERATED_MODULE_RE } from "../const";
 import { normalizeModuleNameTemplate } from "../utils/federationUtils";
 
-const sharingMainTemplate = (options, shared, remotes) => {
+const sharingMainTemplate = (options) => {
+  const { shared } = options;
   const shareScopesMeta = `{
     ${
       Object.entries(shared)
@@ -107,7 +108,7 @@ const sharingMainTemplate = (options, shared, remotes) => {
     }
 
     ${normalizeModuleNameTemplate}
-    ${remotesFactory(options, remotes)}
+    ${remotesFactory(options)}
   `;
 };
 
@@ -160,7 +161,8 @@ function getImportingFn(remoteConfig) {
   }
 }
 
-function remotesFactory(options, remotes) {
+function remotesFactory(options) {
+  const { remotes } = options;
   if (Object.keys(remotes).length === 0) {
     return "";
   }

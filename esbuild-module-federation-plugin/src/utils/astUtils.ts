@@ -7,12 +7,12 @@ import t, {
   VariableDeclarator,
 } from "@babel/types";
 
-type ImportSpecifiers = {
+export type ImportSpecifiers = {
   defaultImport: string | null;
   namedImports: Array<{ local: string; imported: string }>;
 };
 
-type MaybeVariableDeclarator = VariableDeclarator | null;
+export type MaybeVariableDeclarator = VariableDeclarator | null;
 
 export function codeToAst(code: string) {
   return babelParser.parse(code, {
@@ -42,23 +42,7 @@ export function convertImportDeclarations(
   node: ImportDeclaration,
   callExpression: CallExpression
 ): VariableDeclaration {
-  const { defaultImport, namedImports } =
-    node.specifiers.reduce<ImportSpecifiers>(
-      (acc, specifier) => {
-        if (t.isImportDefaultSpecifier(specifier)) {
-          acc.defaultImport = specifier.local.name;
-        } else if (t.isImportSpecifier(specifier)) {
-          acc.namedImports.push({
-            imported: t.isStringLiteral(specifier.imported)
-              ? specifier.imported.value
-              : specifier.imported.name,
-            local: specifier.local.name,
-          });
-        }
-        return acc;
-      },
-      { defaultImport: null, namedImports: [] }
-    );
+  const { defaultImport, namedImports } = extractImportSpecifiers(node);
 
   const newNode = t.variableDeclaration(
     "const",
@@ -73,6 +57,27 @@ export function convertImportDeclarations(
   );
 
   return newNode;
+}
+
+export function extractImportSpecifiers(
+  node: ImportDeclaration
+): ImportSpecifiers {
+  return node.specifiers.reduce<ImportSpecifiers>(
+    (acc, specifier) => {
+      if (t.isImportDefaultSpecifier(specifier)) {
+        acc.defaultImport = specifier.local.name;
+      } else if (t.isImportSpecifier(specifier)) {
+        acc.namedImports.push({
+          imported: t.isStringLiteral(specifier.imported)
+            ? specifier.imported.value
+            : specifier.imported.name,
+          local: specifier.local.name,
+        });
+      }
+      return acc;
+    },
+    { defaultImport: null, namedImports: [] }
+  );
 }
 
 function isVariableDeclarator(

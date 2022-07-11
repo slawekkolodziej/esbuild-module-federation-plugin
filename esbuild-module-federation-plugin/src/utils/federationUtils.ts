@@ -42,15 +42,19 @@ export function normalizeShared(shared) {
 
 export const normalizeModuleNameTemplate = /* js */ `
   function normalizeModuleName(moduleName) {
-    if (moduleName[0] === "@") {
+    const firstChar = moduleName[0];
+
+    if (firstChar === "@") {
       const [modScope, modName, ...modPath] = moduleName.split("/");
 
-      return [[modScope, modName].join("/"), './' + modPath.join("/")];
+      return [[modScope, modName].join("/"), "./" + modPath.join("/")];
+    } else if (firstChar === ".") {
+      return [moduleName];
+    } else {
+      const [modName, ...modPath] = moduleName.split("/");
+
+      return [modName, "./" + modPath.join("/")];
     }
-
-    const [modName, ...modPath] = moduleName.split("/");
-
-    return [modName, './' + modPath.join("/")];
   }
 `;
 export const normalizeModuleName = templateToFunction(

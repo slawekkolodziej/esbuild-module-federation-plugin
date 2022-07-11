@@ -44,13 +44,13 @@ export const TransformFederatedEsmImports = () => {
   };
 };
 
-export function transformFederatedEsmImports(ast) {
+export function transformFederatedEsmImports(ast, relativeChunkPath) {
   const { visitor, sideEffects } = TransformFederatedEsmImports();
 
   traverse(ast, visitor);
 
   if (sideEffects.hasFederatedImports) {
-    ast.program.body.unshift(createSharedScopeImport());
+    ast.program.body.unshift(createSharedScopeImport(relativeChunkPath));
   }
 
   return ast;
@@ -62,7 +62,7 @@ function createGetModuleCall(moduleName) {
   ]);
 }
 
-export function createSharedScopeImport() {
+export function createSharedScopeImport(relativeChunkPath = ".") {
   return t.importDeclaration(
     [
       t.importSpecifier(t.identifier("getModule"), t.identifier("getModule")),
@@ -71,7 +71,7 @@ export function createSharedScopeImport() {
         t.identifier("getModuleAsync")
       ),
     ],
-    t.stringLiteral(`../${SHARED_SCOPE_MODULE_NAME}.js`)
+    t.stringLiteral(`${relativeChunkPath}/${SHARED_SCOPE_MODULE_NAME}.js`)
   );
 }
 
