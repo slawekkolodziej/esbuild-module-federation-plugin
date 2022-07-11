@@ -1,77 +1,68 @@
 import { dirname, join } from "path";
-import { readFile, writeFile } from "fs/promises";
-import { FEDERATED_MODULE_RE_STR } from "../const";
+import { readFile, writeFile, rm } from "fs/promises";
 import t from "@babel/types";
+import { FEDERATED_MODULE_RE_STR } from "../const";
 import { astToCode, codeToAst } from "../utils/astUtils";
 import { createSharedScopeImport } from "./transformFederatedEsmImports";
 
 type TransformFederatedRequireRetVal = {
-  remoteEntryCode: string;
   requireMockCode: string;
   requireMockChunk: string;
   requireNamedExport: string;
 };
 
 export async function transformFederatedRequire(
-  remoteEntryPath
+  requireMockPath,
+  relativeChunkPath = "."
 ): Promise<TransformFederatedRequireRetVal> {
-  const buildRoot = dirname(remoteEntryPath);
-  const remoteEntryCode = await readFile(remoteEntryPath, "utf-8");
-  const [ast, requireMockChunkDetails] = locateRequireChunk(
+  const buildRoot = dirname(requireMockPath);
+  const remoteEntryCode = await readFile(requireMockPath, "utf-8");
+  const requireMockChunkDetails = locateRequireChunk(
     codeToAst(remoteEntryCode)
   );
-
   const requireChunkPath = join(
     buildRoot,
     requireMockChunkDetails.requireMockChunk
   );
-  const updatedRemoteEntryCode = astToCode(ast);
   const [requireMockCode] = await Promise.all([
     readFile(requireChunkPath, "utf-8"),
-    writeFile(remoteEntryPath, updatedRemoteEntryCode),
+    rm(requireMockPath),
   ]);
 
   const finalAst = alterGlobalRequire(
     codeToAst(requireMockCode),
-    requireMockChunkDetails.requireNamedExport
+    requireMockChunkDetails.requireNamedExport,
+    relativeChunkPath
   );
   const updatedRequireMockCode = astToCode(finalAst);
 
   await writeFile(requireChunkPath, updatedRequireMockCode);
 
   return {
-    remoteEntryCode: updatedRemoteEntryCode,
     requireMockCode: updatedRequireMockCode,
     ...requireMockChunkDetails,
   };
 }
 
-type LocateRequireChunkRetVal = [
-  ast: unknown,
-  requireMockChunkDetails: {
-    requireMockChunk: string;
-    requireNamedExport: string;
-  }
-];
+type LocateRequireChunkRetVal = {
+  requireMockChunk: string;
+  requireNamedExport: string;
+};
 
 export function locateRequireChunk(ast): LocateRequireChunkRetVal {
-  // remote-entry.js contains the code similar to this:
-  // import { foo as require } from './chunks/chunk-123.js';
-  // (function(self) {
-  //   ...
-  // }(globalThis, require))
-  // esbuild will convert'require' calls to its own __require or a minified
-  // version of the name. This code is used to get the variable's name.
-  const iifeArguments = ast.program.body.find((node) =>
-    t.isExpressionStatement(node)
-  )?.expression.arguments;
-  const localRequireName = iifeArguments.slice(-1)[0].name;
+  const iife = ast.program.body.find(
+    (node) =>
+      t.isExpressionStatement(node) &&
+      t.isCallExpression(node.expression) &&
+      node.expression.arguments.length > 0
+  );
+  const iifeArguments = iife.expression.arguments;
+  const localRequireName = iifeArguments[0].name;
 
   if (!localRequireName) {
     throw new Error('Could not found local "require" mock!');
   }
 
-  // Now look for an import statement that declares __require.
   const requireMockImportDecl = ast.program.body.find(
     (node) =>
       node.type === "ImportDeclaration" &&
@@ -79,34 +70,21 @@ export function locateRequireChunk(ast): LocateRequireChunkRetVal {
         (specifier) => specifier.local.name === localRequireName
       )
   );
-  // Using the import statement we can get chunk name.
   const requireMockChunk = requireMockImportDecl.source.value;
 
   if (!requireMockChunk) {
     throw new Error('Could not found "require" mock chunk!');
   }
 
-  // Aside from the chunk name, we must get the export name for __require,
-  // (it would be 'foo' in the example code above).
   const requireNamedExport = requireMockImportDecl.specifiers[0].imported.name;
 
-  // When we have all of the necessary information, we can remove both - iife's argument
-  // and import statement
-  iifeArguments.splice(1, 1);
-  ast.program.body = ast.program.body.filter(
-    (node) => node !== requireMockImportDecl
-  );
-
-  return [
-    ast,
-    {
-      requireMockChunk,
-      requireNamedExport,
-    },
-  ];
+  return {
+    requireMockChunk,
+    requireNamedExport,
+  };
 }
 
-function alterGlobalRequire(ast, namedExport) {
+function alterGlobalRequire(ast, namedExport, relativeChunkPath) {
   const namedExportDecl = ast.program.body.find((node) =>
     t.isExportNamedDeclaration(node)
   );
@@ -170,7 +148,12 @@ function alterGlobalRequire(ast, namedExport) {
     [requireMockDecl.init]
   );
 
-  ast.program.body.unshift(createSharedScopeImport());
+  ast.program.body.unshift(
+    createSharedScopeImport(relativeChunkPath, {
+      getModule: true,
+      getModuleAsync: false,
+    })
+  );
 
   return ast;
 }

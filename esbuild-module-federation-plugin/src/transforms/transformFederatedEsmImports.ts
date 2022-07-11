@@ -1,12 +1,14 @@
 import traverse from "@babel/traverse";
 import t from "@babel/types";
-import { replaceNode } from "../utils/astUtils";
+import { isImportSpecifier, replaceNode } from "../utils/astUtils";
 import { FEDERATED_MODULE_RE, SHARED_SCOPE_MODULE_NAME } from "../const";
 import { convertImportDeclarations } from "../utils/astUtils";
 
 export const TransformFederatedEsmImports = () => {
   const sideEffects = {
     hasFederatedImports: false,
+    hasGetModuleAsyncCall: false,
+    hasGetModuleCall: false,
   };
 
   const visitor = {
@@ -19,6 +21,7 @@ export const TransformFederatedEsmImports = () => {
       }
 
       sideEffects.hasFederatedImports = true;
+      sideEffects.hasGetModuleCall = true;
 
       const getModuleCall = createGetModuleCall(moduleName);
       const newNode = convertImportDeclarations(node, getModuleCall);
@@ -30,6 +33,7 @@ export const TransformFederatedEsmImports = () => {
 
       if (FEDERATED_MODULE_RE.test(moduleName)) {
         sideEffects.hasFederatedImports = true;
+        sideEffects.hasGetModuleAsyncCall = true;
 
         const newNode = createDynamicImport(moduleName);
 
@@ -44,13 +48,18 @@ export const TransformFederatedEsmImports = () => {
   };
 };
 
-export function transformFederatedEsmImports(ast, relativeChunkPath) {
+export function transformFederatedEsmImports(ast, relativeChunkPath = ".") {
   const { visitor, sideEffects } = TransformFederatedEsmImports();
 
   traverse(ast, visitor);
 
   if (sideEffects.hasFederatedImports) {
-    ast.program.body.unshift(createSharedScopeImport(relativeChunkPath));
+    ast.program.body.unshift(
+      createSharedScopeImport(relativeChunkPath, {
+        getModule: sideEffects.hasGetModuleCall,
+        getModuleAsync: sideEffects.hasGetModuleAsyncCall,
+      })
+    );
   }
 
   return ast;
@@ -62,15 +71,25 @@ function createGetModuleCall(moduleName) {
   ]);
 }
 
-export function createSharedScopeImport(relativeChunkPath = ".") {
+export function createSharedScopeImport(
+  relativeChunkPath,
+  { getModule, getModuleAsync }
+) {
   return t.importDeclaration(
     [
-      t.importSpecifier(t.identifier("getModule"), t.identifier("getModule")),
-      t.importSpecifier(
-        t.identifier("getModuleAsync"),
-        t.identifier("getModuleAsync")
-      ),
-    ],
+      getModule
+        ? t.importSpecifier(
+            t.identifier("getModule"),
+            t.identifier("getModule")
+          )
+        : null,
+      getModuleAsync
+        ? t.importSpecifier(
+            t.identifier("getModuleAsync"),
+            t.identifier("getModuleAsync")
+          )
+        : null,
+    ].filter(isImportSpecifier),
     t.stringLiteral(`${relativeChunkPath}/${SHARED_SCOPE_MODULE_NAME}.js`)
   );
 }

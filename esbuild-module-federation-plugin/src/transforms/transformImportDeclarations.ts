@@ -12,8 +12,14 @@ export type ImportSpecifiersGroup = {
 };
 
 export type ImportDeclarationDetails = Map<string, ImportSpecifiersGroup>;
-
-export function transformImportDeclarations(ast) {
+export type UniqueNames = {
+  mainFnName: string;
+  loadFnName: string;
+};
+export function transformImportDeclarations(
+  ast,
+  { mainFnName, loadFnName }: UniqueNames
+) {
   const groupedImportDeclarationDetails = new Map<
     string,
     ImportSpecifiersGroup
@@ -85,35 +91,46 @@ export function transformImportDeclarations(ast) {
       }
     );
 
+  if (variableDeclarators.length) {
+    rootNodes.unshift(t.variableDeclaration("const", variableDeclarators));
+  }
+
   ast.program.body = [
-    t.callExpression(
-      t.memberExpression(
-        t.callExpression(
-          t.memberExpression(t.identifier("Promise"), t.identifier("all")),
-          [
-            t.arrayExpression(
-              importSources.map((importSource) =>
-                t.callExpression(t.import(), [t.stringLiteral(importSource)])
-              )
+    t.functionDeclaration(
+      t.identifier(loadFnName),
+      [],
+      t.blockStatement([
+        t.returnStatement(
+          t.callExpression(
+            t.memberExpression(
+              t.callExpression(
+                t.memberExpression(
+                  t.identifier("Promise"),
+                  t.identifier("all")
+                ),
+                [
+                  t.arrayExpression(
+                    importSources.map((importSource) =>
+                      t.callExpression(t.import(), [
+                        t.stringLiteral(importSource),
+                      ])
+                    )
+                  ),
+                ]
+              ),
+              t.identifier("then")
             ),
-          ]
-        ),
-        t.identifier("then")
-      ),
-      [
-        t.arrowFunctionExpression(
-          [t.arrayPattern(arrayPatternElements)],
-          t.blockStatement(
-            [
-              variableDeclarators.length
-                ? t.variableDeclaration("const", variableDeclarators)
-                : null,
-              ...rootNodes,
-            ].filter(Boolean)
+            [t.identifier(mainFnName)]
           )
         ),
-      ]
+      ])
     ),
+    t.functionDeclaration(
+      t.identifier(mainFnName),
+      [t.arrayPattern(arrayPatternElements)],
+      t.blockStatement(rootNodes)
+    ),
+    t.callExpression(t.identifier(loadFnName), []),
   ];
 
   return ast;

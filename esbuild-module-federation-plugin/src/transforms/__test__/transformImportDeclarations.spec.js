@@ -5,7 +5,10 @@ import { transformImportDeclarations } from "../../transforms/transformImportDec
 function transformCode(code) {
   const ast = codeToAst(code);
 
-  transformImportDeclarations(ast);
+  transformImportDeclarations(ast, {
+    mainFnName: "appMain",
+    loadFnName: "loadDeps",
+  });
 
   return astToCode(ast);
 }
@@ -25,17 +28,23 @@ describe("transformImportDeclarations", () => {
 
     expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
-        Promise.all([import("react"), import("react-dom")]).then(([React, {
+        function loadDeps() {
+          return Promise.all([import("react"), import("react-dom")]).then(appMain);
+        }
+
+        function appMain([React, {
           render,
           hydrate: reactHydrate
-        }]) => {
+        }]) {
           const {
             useMemo,
             useState: useState2
           } = React;
           const RemoteModule = React.lazy(() => import('myremote/someModule'));
           console.log(React, RemoteModule, render);
-        })
+        }
+
+        loadDeps()
       `)
     );
   });
@@ -45,7 +54,6 @@ describe("transformImportDeclarations", () => {
       import React3 from "@runtime/federation/shared/react";
       import { createRoot } from "@runtime/federation/shared/react-dom";
 
-      init_define_process_env_REMOTE_HOSTS();
       import React2 from "@runtime/federation/shared/react";
 
       import React, { createContext, lazy, useContext } from "@runtime/federation/shared/react";
@@ -55,9 +63,13 @@ describe("transformImportDeclarations", () => {
 
     expect(trimIndent(result)).toEqual(
       trimIndent(/* js */ `
-        Promise.all([import("@runtime/federation/shared/react"), import("@runtime/federation/shared/react-dom")]).then(([React3, {
+        function loadDeps() {
+          return Promise.all([import("@runtime/federation/shared/react"), import("@runtime/federation/shared/react-dom")]).then(appMain);
+        }
+
+        function appMain([React3, {
           createRoot
-        }]) => {
+        }]) {
           const React2 = React3,
                 React = React3,
                 {
@@ -65,8 +77,9 @@ describe("transformImportDeclarations", () => {
                   lazy,
                   useContext
                 } = React3;
-          init_define_process_env_REMOTE_HOSTS();
-        })
+        }
+
+        loadDeps()
       `)
     );
   });

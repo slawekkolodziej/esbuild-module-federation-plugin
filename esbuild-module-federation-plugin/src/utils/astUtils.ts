@@ -5,6 +5,7 @@ import t, {
   VariableDeclaration,
   ImportDeclaration,
   VariableDeclarator,
+  ImportSpecifier,
 } from "@babel/types";
 
 export type ImportSpecifiers = {
@@ -13,6 +14,8 @@ export type ImportSpecifiers = {
 };
 
 export type MaybeVariableDeclarator = VariableDeclarator | null;
+
+export type MaybeImportSpecifier = ImportSpecifier | null;
 
 export function codeToAst(code: string) {
   return babelParser.parse(code, {
@@ -80,9 +83,15 @@ export function extractImportSpecifiers(
   );
 }
 
-function isVariableDeclarator(
+export function isVariableDeclarator(
   decl: MaybeVariableDeclarator
 ): decl is VariableDeclarator {
+  return decl !== null;
+}
+
+export function isImportSpecifier(
+  decl: MaybeImportSpecifier
+): decl is ImportSpecifier {
   return decl !== null;
 }
 

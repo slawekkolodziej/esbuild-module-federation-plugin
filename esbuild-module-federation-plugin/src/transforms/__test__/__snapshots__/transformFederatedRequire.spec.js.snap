@@ -6,7 +6,7 @@ exports[`transformFederatedRequire > properly overrides __require function 1`] =
 `;
 
 exports[`transformFederatedRequire > properly overrides __require function 2`] = `
-"import { getModule, getModuleAsync } from \\"./federation-shared.js\\";
+"import { getModule } from \\"./federation-shared.js\\";
 
 var __require = (req => mod => {
   if (mod.match(/@runtime\\\\/federation\\\\/(remote|shared)\\\\/(.+)/)) {
@@ -30,7 +30,7 @@ export { __require, App };"
 exports[`transformFederatedRequire > properly overrides __require function in minified code 1`] = `"(function (i) {})(globalThis);"`;
 
 exports[`transformFederatedRequire > properly overrides __require function in minified code 2`] = `
-"import { getModule, getModuleAsync } from \\"./federation-shared.js\\";
+"import { getModule } from \\"./federation-shared.js\\";
 
 var f = (req => mod => {
   if (mod.match(/@runtime\\\\/federation\\\\/(remote|shared)\\\\/(.+)/)) {
