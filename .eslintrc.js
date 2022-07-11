@@ -37,6 +37,14 @@ module.exports = {
       plugins: ["@typescript-eslint"],
     },
     {
+      files: ["*.tsx", "*.jsx"],
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    {
       files: ["**/__test__/**/*"],
       env: {
         jest: true,
