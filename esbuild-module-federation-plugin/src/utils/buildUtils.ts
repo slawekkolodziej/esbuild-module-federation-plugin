@@ -19,3 +19,10 @@ export function generateUniqueIdentifier(code, prefix = "var") {
 
   return varName;
 }
+
+export function isNodeBuild(build) {
+  return (
+    build.initialOptions.format === "cjs" &&
+    build.initialOptions.platform === "node"
+  );
+}

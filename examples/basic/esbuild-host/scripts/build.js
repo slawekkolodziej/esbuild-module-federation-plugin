@@ -1,8 +1,5 @@
 const esbuild = require("esbuild");
 const {
-  federationShareScopePlugin,
-} = require("esbuild-federation-share-scope");
-const {
   esbuildModuleFederationPlugin,
 } = require("esbuild-module-federation-plugin");
 const { nodeExternalsPlugin } = require("esbuild-node-externals");
@@ -14,17 +11,21 @@ esbuild
       app: "src/index.jsx",
     },
     plugins: [
-      federationShareScopePlugin(process.cwd(), {
-        shared: ["react", "react-dom"],
+      esbuildModuleFederationPlugin({
+        shared: {
+          react: {
+            singleton: true,
+          },
+          "react-dom": {
+            singleton: true,
+          },
+        },
       }),
     ],
     define: {
       "process.env.NODE_ENV": `"production"`,
-      "process.env.REMOTE_HOSTS": JSON.stringify({
-        webpackRemote: process.env.REMOTE_HOST || "http://localhost:3001",
-        esbuildRemote: { url: "http://localhost:3002", type: "module" },
-      }),
     },
+    splitting: true,
     minify: true,
     format: "esm",
     bundle: true,
@@ -52,8 +53,15 @@ esbuild
     },
     plugins: [
       nodeExternalsPlugin(),
-      federationShareScopePlugin(process.cwd(), {
-        shared: ["react"],
+      esbuildModuleFederationPlugin({
+        shared: {
+          react: {
+            singleton: true,
+          },
+          "react-dom": {
+            singleton: true,
+          },
+        },
       }),
     ],
     define: {

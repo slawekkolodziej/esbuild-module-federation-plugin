@@ -1,6 +1,7 @@
 import { join } from "path";
 import { readFile } from "fs/promises";
 import { buildFixture } from "../../utils/testUtils";
+import { esbuildModuleFederationPlugin } from "../../esbuildModuleFederationPlugin";
 import { processRequireCallPlugin } from "../../parts/requireCall";
 
 const esbuildOptions = {
@@ -16,15 +17,15 @@ const esbuildOptions = {
   write: true,
 };
 
-describe("transformFederatedRequire", () => {
-  it("properly overrides __require function", async () => {
+describe("simpleRequireTransform", () => {
+  it("overrides __require function", async () => {
     const finalEsbuildOptions = {
       ...esbuildOptions,
       plugins: [processRequireCallPlugin()],
     };
 
     const out = await buildFixture(
-      "transformFederatedRequire",
+      "simpleRequireTransform",
       finalEsbuildOptions
     );
 
@@ -41,7 +42,7 @@ describe("transformFederatedRequire", () => {
     });
   });
 
-  it("properly overrides __require function in minified code", async () => {
+  it("overrides __require function in minified code", async () => {
     const finalEsbuildOptions = {
       ...esbuildOptions,
       minify: true,
@@ -49,7 +50,7 @@ describe("transformFederatedRequire", () => {
     };
 
     const out = await buildFixture(
-      "transformFederatedRequire",
+      "simpleRequireTransform",
       finalEsbuildOptions,
       "out-minified"
     );
@@ -64,6 +65,42 @@ describe("transformFederatedRequire", () => {
       expect(f2).toMatchSnapshot();
       expect(f3).toMatchSnapshot();
       expect(f4).toMatchSnapshot();
+    });
+  });
+
+  it("overrides __require function in node build", async () => {
+    const esbuildOptions = {
+      entryPoints: {
+        server: "server.jsx",
+      },
+      bundle: true,
+      write: true,
+      minify: false,
+      splitting: false,
+      platform: "node",
+      format: "cjs",
+      plugins: [
+        esbuildModuleFederationPlugin({
+          remotes: {
+            remoteModule: "remote@somewhere",
+          },
+          shared: ["react", "react-dom"],
+        }),
+      ],
+    };
+
+    const out = await buildFixture(
+      "requireWithFederatedRemote",
+      esbuildOptions,
+      "out-node"
+    );
+
+    await Promise.all([
+      readFile(join(out, "server.js"), "utf-8"),
+      readFile(join(out, "federation-shared.js"), "utf-8"),
+    ]).then(([f1, f2]) => {
+      expect(f1).toMatchSnapshot();
+      expect(f2).toMatchSnapshot();
     });
   });
 });

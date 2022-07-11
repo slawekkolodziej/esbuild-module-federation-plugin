@@ -1,8 +1,9 @@
 import { dirname, join } from "path";
 import { readFile, writeFile, rm } from "fs/promises";
 import t from "@babel/types";
-import { FEDERATED_MODULE_RE_STR } from "../const";
+import { SHARED_SCOPE_MODULE_NAME, FEDERATED_MODULE_RE_STR } from "../const";
 import { astToCode, codeToAst } from "../utils/astUtils";
+import { generateUniqueIdentifier } from "../utils/buildUtils";
 import { createSharedScopeImport } from "./transformFederatedEsmImports";
 
 type TransformFederatedRequireRetVal = {
@@ -11,15 +12,41 @@ type TransformFederatedRequireRetVal = {
   requireNamedExport: string;
 };
 
-export async function transformFederatedRequire(
-  requireMockPath,
+export async function transformFederatedRequireCjs(
+  filePath: string,
+  relativeChunkPath = "."
+) {
+  // const buildRoot = dirname(requireMockPath);
+  const code = await readFile(filePath, "utf-8");
+  const originalRequireFn = generateUniqueIdentifier(code, "originalRequire");
+  const federatedModuleRe = generateUniqueIdentifier(code, "federatedModuleRe");
+
+  const requireMock = /* js */ `
+    var Module = require('module');
+    var { getModule } = require('${relativeChunkPath}/${SHARED_SCOPE_MODULE_NAME}.js')
+    var ${originalRequireFn} = Module.prototype.require;
+    var ${federatedModuleRe} = new RegExp(
+      '${FEDERATED_MODULE_RE_STR.replace(/\//g, "\\/")})'
+    );
+
+    Module.prototype.require = function(mod) {
+      if (mod.match(${federatedModuleRe})) {
+        return getModule(mod);
+      }
+      return ${originalRequireFn}.apply(this, arguments);
+    };
+  `;
+
+  return await writeFile(filePath, [requireMock, code].join("\n"));
+}
+
+export async function transformFederatedRequireEsm(
+  requireMockPath: string,
   relativeChunkPath = "."
 ): Promise<TransformFederatedRequireRetVal> {
   const buildRoot = dirname(requireMockPath);
-  const remoteEntryCode = await readFile(requireMockPath, "utf-8");
-  const requireMockChunkDetails = locateRequireChunk(
-    codeToAst(remoteEntryCode)
-  );
+  const code = await readFile(requireMockPath, "utf-8");
+  const requireMockChunkDetails = locateRequireChunk(codeToAst(code));
   const requireChunkPath = join(
     buildRoot,
     requireMockChunkDetails.requireMockChunk
@@ -28,7 +55,6 @@ export async function transformFederatedRequire(
     readFile(requireChunkPath, "utf-8"),
     rm(requireMockPath),
   ]);
-
   const finalAst = alterGlobalRequire(
     codeToAst(requireMockCode),
     requireMockChunkDetails.requireNamedExport,
