@@ -1,3 +1,4 @@
+import { Remotes, RemoteConfig } from "../types";
 import { templateToFunction } from "./templateUtils";
 
 export function getVersion(shared) {
@@ -61,26 +62,34 @@ export const normalizeModuleName = templateToFunction(
   normalizeModuleNameTemplate
 );
 
-export function normalizeRemotes(remotes = {}) {
+export function normalizeRemotes(remotes: Remotes = {}) {
   const remoteAddressWithGlobalRe = /^(?:([a-z-_][a-z0-9-_]+)@)?(.+)$/i;
 
   return Object.entries(remotes).reduce((acc, [remote, remoteConfig]) => {
-    const config = {};
+    const config: Partial<RemoteConfig> = {};
 
     if (typeof remoteConfig === "string") {
-      const [, global, src] = remoteConfig.match(remoteAddressWithGlobalRe);
+      const matches = remoteConfig.match(remoteAddressWithGlobalRe);
 
-      config.type = "var";
-      config.global = global;
-      config.src = src;
+      if (matches !== null) {
+        const [, global, src] = matches;
+
+        config.type = "var";
+        config.global = global;
+        config.src = src;
+      } else {
+        throw new Error("Remote address is not supported.");
+      }
+    } else {
+      Object.assign(config, remoteConfig);
     }
 
     return {
       ...acc,
       [remote]: {
-        src: config.src || remoteConfig.src || "",
-        type: config.type || remoteConfig.type || "var",
-        global: config.global || remoteConfig.global || remote,
+        src: config.src || "",
+        type: config.type || "var",
+        global: config.global || remote,
       },
     };
   }, {});

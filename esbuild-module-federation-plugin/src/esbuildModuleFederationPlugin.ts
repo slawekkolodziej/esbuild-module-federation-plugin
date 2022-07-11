@@ -6,7 +6,6 @@ import {
   normalizeShared,
   normalizeRemotes,
 } from "./utils/federationUtils";
-import { transformFederatedRequire } from "./transforms/transformFederatedRequire";
 import { transformImportDeclarations } from "./transforms/transformImportDeclarations";
 import { transformFederatedEsmImports } from "./transforms/transformFederatedEsmImports";
 import { transformAddInitSharingCall } from "./transforms/transformAddInitSharingCall";
@@ -18,6 +17,11 @@ import {
   SHARED_SCOPE_MODULE_NAME,
 } from "./const";
 import { astToCode, codeToAst } from "./utils/astUtils";
+import {
+  getRelativeChunkPath,
+  generateUniqueIdentifier,
+} from "./utils/buildUtils";
+import { processRequireCall } from "./parts/requireCall";
 
 export function esbuildModuleFederationPlugin(
   paramsOptions: ModuleFederationPluginOptions = {}
@@ -203,65 +207,8 @@ function processSharing(build, options) {
   return {};
 }
 
-function processRequireCall(build) {
-  const requireMockName = "require-mock";
-  const requireMockFilter = new RegExp(`${requireMockName}\\.js`);
-  const outDir = build.initialOptions.outdir;
-  const requireMockEntryPath = path.join(outDir, `${requireMockName}.js`);
-
-  build.initialOptions.entryPoints[requireMockName] = `${requireMockName}.js`;
-
-  build.onResolve({ filter: requireMockFilter }, (args) => {
-    return {
-      path: args.path,
-      namespace: "federation/require-mock",
-    };
-  });
-
-  // Generate remote-entry.js
-  build.onLoad(
-    { namespace: "federation/require-mock", filter: requireMockFilter },
-    () => {
-      return {
-        resolveDir: ".",
-        contents: `(function(r){return typeof r/* require mock */}(require))`,
-      };
-    }
-  );
-
-  return {
-    onEnd: () =>
-      transformFederatedRequire(
-        requireMockEntryPath,
-        getRelativeChunkPath(build)
-      ),
-  };
-}
-
 function getRelativePath(filePath: string): string {
   return path.relative(process.cwd(), filePath);
-}
-
-function getRelativeChunkPath(build) {
-  return (
-    (build.initialOptions.chunkNames ?? "[name]-[hash]")
-      .split("/")
-      .slice(0, -1)
-      .map(() => "..")
-      .join("/") || "."
-  );
-}
-
-function generateUniqueIdentifier(code, prefix = "var") {
-  let i = 0;
-  let varName = `__${prefix}${i}`;
-
-  while (code.indexOf(varName) > -1) {
-    varName = `${prefix}${i}`;
-    i++;
-  }
-
-  return varName;
 }
 
 export default esbuildModuleFederationPlugin;

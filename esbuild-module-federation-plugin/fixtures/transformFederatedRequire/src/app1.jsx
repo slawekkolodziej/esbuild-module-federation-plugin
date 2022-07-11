@@ -1,3 +1,3 @@
-import app2 from './app2';
+const app2 = require("./app2");
 
-(function(self){}(globalThis, require))
+console.log(app2);
