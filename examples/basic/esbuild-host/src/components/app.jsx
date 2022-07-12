@@ -1,12 +1,11 @@
 import React from "react";
-
 import federatedComponent, { context } from "./federated-component";
 
 export { context };
 
-const Header = federatedComponent("webpackRemote", "./header");
-const Header2 = federatedComponent("esbuildRemote", "./header");
-const Box = federatedComponent("esbuildRemote", "./box");
+// const Header = federatedComponent("webpackRemote", "header");
+const Header2 = federatedComponent("esbuildRemote", "header");
+const Box = federatedComponent("esbuildRemote", "box");
 
 export default function App() {
   return (
@@ -17,13 +16,13 @@ export default function App() {
         <title>Esbuild Host</title>
       </head>
       <body>
+        <div>Hello world!</div>
         <React.Suspense fallback="">
-          {typeof window !== 'undefined' ? (
+          <div>Content inside suspense</div>
+          {typeof window !== "undefined" ? (
             <Header2>hello esbuild!</Header2>
           ) : null}
-          {typeof window !== 'undefined' ? (
-            <Box>hello esbuild box!</Box>
-          ) : null}
+          {typeof window !== "undefined" ? <Box>hello esbuild box!</Box> : null}
           <Header>
             <h1>Header</h1>
             <p>Federated from a webpack build</p>

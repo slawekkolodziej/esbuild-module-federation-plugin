@@ -1,3 +1,5 @@
+import path from "path";
+
 export function getRelativeChunkPath(build) {
   return (
     (build.initialOptions.chunkNames ?? "[name]-[hash]")
@@ -25,4 +27,8 @@ export function isNodeBuild(build) {
     build.initialOptions.format === "cjs" &&
     build.initialOptions.platform === "node"
   );
+}
+
+export function getRelativePath(filePath: string): string {
+  return path.relative(process.cwd(), filePath);
 }

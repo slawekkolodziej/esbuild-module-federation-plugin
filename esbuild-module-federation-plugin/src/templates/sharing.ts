@@ -172,12 +172,12 @@ function remotesFactory(options) {
       Object.entries(remotes)
         .map(
           ([remote, remoteConfig]) => `
-      ${JSON.stringify(remote)}: {
-        global: '${remoteConfig.global}',
-        get: (path) => window.${remoteConfig.global}?.get(path),
-        import: () => ${getImportingFn(remoteConfig)},
-        loaded: false
-      }`
+            ${JSON.stringify(remote)}: {
+              global: '${remoteConfig.global}',
+              get: (path) => window.${remoteConfig.global}?.get(path),
+              import: () => ${getImportingFn(remoteConfig)},
+              loaded: false
+            }`
         )
         .join(",\n  ") || ""
     }

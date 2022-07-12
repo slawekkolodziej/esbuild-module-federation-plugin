@@ -26,7 +26,7 @@ export async function transformFederatedRequireCjs(
     var { getModule } = require('${relativeChunkPath}/${SHARED_SCOPE_MODULE_NAME}.js')
     var ${originalRequireFn} = Module.prototype.require;
     var ${federatedModuleRe} = new RegExp(
-      '${FEDERATED_MODULE_RE_STR.replace(/\//g, "\\/")})'
+      '${FEDERATED_MODULE_RE_STR.replace(/\//g, "\\/")}'
     );
 
     Module.prototype.require = function(mod) {

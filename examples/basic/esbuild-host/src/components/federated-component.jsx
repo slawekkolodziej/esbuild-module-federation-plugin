@@ -2,21 +2,18 @@ import React, { createContext, lazy, useContext } from "react";
 import { Parser, ProcessNodeDefinitions } from "html-to-react";
 import stringify from "json-stringify-deterministic";
 import fetch from "node-fetch";
-
-import { shareScopes } from "@runtime/federation/sharing";
+import { getModuleAsync } from "@runtime/federation/sharing";
 
 export const context = createContext({});
 
-function getClientComponent(ctx, remote, module, shareScope) {
+function getClientComponent(ctx, remote, module) {
   ctx[remote] = ctx[remote] || {};
 
   let Component = ctx[remote][module];
 
   if (!Component) {
     Component = ctx[remote][module] = lazy(() =>
-      window[remote].init(shareScopes[shareScope])
-        .then(() => window[remote].get(module))
-        .then((factory) => factory())
+      getModuleAsync(`@runtime/federation/remote/${remote}/${module}`)
     );
   }
 
@@ -24,8 +21,6 @@ function getClientComponent(ctx, remote, module, shareScope) {
 }
 
 function getServerComponent(ctx, remote, module, props) {
-  // FIXME:
-  return null;
   // We cache based on properties. This allows us to only
   // do one fetch for multiple references of a remote component.
   const id = stringify({ remote, module, props });

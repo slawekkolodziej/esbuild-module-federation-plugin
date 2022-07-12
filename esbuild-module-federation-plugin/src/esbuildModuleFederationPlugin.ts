@@ -1,4 +1,3 @@
-import path from "path";
 import { readFile, writeFile } from "fs/promises";
 import { ModuleFederationPluginOptions } from "./types";
 import {
@@ -6,9 +5,7 @@ import {
   normalizeShared,
   normalizeRemotes,
 } from "./utils/federationUtils";
-import { transformImportDeclarations } from "./transforms/transformImportDeclarations";
 import { transformFederatedEsmImports } from "./transforms/transformFederatedEsmImports";
-import { transformAddInitSharingCall } from "./transforms/transformAddInitSharingCall";
 import { sharingMainTemplate } from "./templates/sharing";
 import { remoteEntryTemplate } from "./templates/remoteEntry";
 import {
@@ -17,11 +14,9 @@ import {
   SHARED_SCOPE_MODULE_NAME,
 } from "./const";
 import { astToCode, codeToAst } from "./utils/astUtils";
-import {
-  getRelativeChunkPath,
-  generateUniqueIdentifier,
-} from "./utils/buildUtils";
+import { getRelativePath, getRelativeChunkPath } from "./utils/buildUtils";
 import { processRequireCall } from "./parts/requireCall";
+import { processEntryPoints } from "./parts/entryPoints";
 
 export function esbuildModuleFederationPlugin(
   paramsOptions: ModuleFederationPluginOptions = {}
@@ -140,44 +135,6 @@ function processRemoteEntry(build, options) {
   });
 }
 
-function processEntryPoints(build) {
-  const outDir = build.initialOptions.outdir || "";
-  const entryPoints = Object.entries<string>(build.initialOptions.entryPoints);
-  const files = entryPoints.map(([out, _]) => {
-    return [outDir, `${out}.js`].filter(Boolean).join("/");
-  });
-
-  return {
-    hasEntryPoints: files.length > 0,
-    isEntryPoint: (filePath) => files.includes(getRelativePath(filePath)),
-    onEnd: () => {
-      return Promise.all(
-        files.map(async (file) => {
-          const code = await readFile(file, "utf-8");
-          const ast = codeToAst(code);
-
-          const mainFnName = generateUniqueIdentifier(code, "mainFn");
-          const loadFnName = generateUniqueIdentifier(code, "loadDepsFn");
-
-          const modifiedAst = transformAddInitSharingCall(
-            transformFederatedEsmImports(
-              transformImportDeclarations(ast, {
-                mainFnName,
-                loadFnName,
-              })
-            ),
-            {
-              loadFnName,
-            }
-          );
-          // minify!
-          await writeFile(file, astToCode(modifiedAst));
-        })
-      );
-    },
-  };
-}
-
 function processSharing(build, options) {
   build.initialOptions.entryPoints[SHARED_SCOPE_MODULE_NAME] =
     "@runtime/federation/sharing";
@@ -205,10 +162,6 @@ function processSharing(build, options) {
   });
 
   return {};
-}
-
-function getRelativePath(filePath: string): string {
-  return path.relative(process.cwd(), filePath);
 }
 
 export default esbuildModuleFederationPlugin;

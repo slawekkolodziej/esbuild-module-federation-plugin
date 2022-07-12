@@ -1,7 +1,6 @@
 import t, { ImportDeclaration } from "@babel/types";
 import { replaceNode } from "../utils/astUtils";
 import { SHARED_SCOPE_MODULE_NAME } from "../const";
-import { isCallExpression } from "typescript";
 
 export function transformAddInitSharingCall(
   ast,
@@ -35,7 +34,9 @@ export function transformAddInitSharingCall(
 
   const initSharingCall = t.callExpression(
     t.memberExpression(
-      t.callExpression(t.identifier("initSharing"), []),
+      t.callExpression(t.identifier("initSharing"), [
+        t.stringLiteral("default"),
+      ]),
       t.identifier("then")
     ),
     [t.identifier(loadFnName)]

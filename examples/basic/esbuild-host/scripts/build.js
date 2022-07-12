@@ -12,6 +12,7 @@ esbuild
     },
     plugins: [
       esbuildModuleFederationPlugin({
+        name: "default",
         shared: {
           react: {
             singleton: true,
@@ -20,13 +21,24 @@ esbuild
             singleton: true,
           },
         },
+        remotes: {
+          webpackRemote: "http://localhost:3001/build/remote-entry.js",
+          esbuildRemote: {
+            src: "http://localhost:3002/build/remote-entry.js",
+            type: "esm",
+          },
+        },
       }),
     ],
     define: {
       "process.env.NODE_ENV": `"production"`,
+      "process.env.REMOTE_HOSTS": JSON.stringify({
+        webpackRemote: process.env.REMOTE_HOST || "http://localhost:3001",
+        esbuildRemote: { url: "http://localhost:3002", type: "module" },
+      }),
     },
     splitting: true,
-    minify: true,
+    minify: false,
     format: "esm",
     bundle: true,
     write: true,
@@ -54,12 +66,20 @@ esbuild
     plugins: [
       nodeExternalsPlugin(),
       esbuildModuleFederationPlugin({
+        name: "default",
         shared: {
           react: {
             singleton: true,
           },
           "react-dom": {
             singleton: true,
+          },
+        },
+        remotes: {
+          webpackRemote: "http://localhost:3001/build/remote-entry.js",
+          esbuildRemote: {
+            src: "http://localhost:3002/build/remote-entry.js",
+            type: "esm",
           },
         },
       }),
