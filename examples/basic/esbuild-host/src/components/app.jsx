@@ -3,7 +3,7 @@ import federatedComponent, { context } from "./federated-component";
 
 export { context };
 
-// const Header = federatedComponent("webpackRemote", "header");
+const Header = federatedComponent("webpackRemote", "header");
 const Header2 = federatedComponent("esbuildRemote", "header");
 const Box = federatedComponent("esbuildRemote", "box");
 
