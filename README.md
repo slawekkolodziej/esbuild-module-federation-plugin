@@ -1,5 +1,7 @@
 # esbuild module federation plugin
 
+This module is not ready for production. It is more of an experiment with module federation and esbuild.
+
 ## TODO:
 
 - [x] Lazy load remotes
